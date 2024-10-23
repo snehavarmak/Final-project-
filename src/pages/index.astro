@@ -1,0 +1,127 @@
+---
+import fetch from "node-fetch";
+import { JSDOM } from "jsdom";
+// Import the getAllArticles function from the newsArchive.js file
+import getAllArticles from "../lib/newsArchive.js";
+
+// Initialize articles variable and error flag
+let articles;
+let errorOccurred = false;
+
+try {
+  // Try to fetch all articles
+  articles = await getAllArticles();
+} catch (error) {
+  // If an error occurs, log it and set the error flag
+  console.error("Failed to get articles:", error);
+  articles = [];
+  errorOccurred = true;
+}
+async function fetchOGData(url) {
+  try {
+    const response = await fetch(url);
+    const html = await response.text();
+    const dom = new JSDOM(html);
+    const doc = dom.window.document;
+    let ogTitle =
+      doc.querySelector('meta[property="og:title"]')?.content || url;
+    const ogImage = doc.querySelector('meta[property="og:image"]')?.content;
+    return { ogTitle, ogImage, url };
+  } catch (error) {
+    console.error("Error fetching OG data:", error);
+    return { ogTitle: "No title", ogImage: "No image", url };
+  }
+}
+
+async function articlesWithOGData(articles) {
+  return await Promise.all(articles.map(fetchOGData));
+}
+let allArticles = await articlesWithOGData(articles);
+---
+
+<html>
+  <body>
+    <h1>Latest Tech News</h1>
+    {
+      errorOccurred ? (
+        <p>Sorry, we're unable to fetch articles at the moment.</p>
+      ) : (
+        <ul class="article-list">
+          {allArticles.map((article) => (
+            <li class="article-card">
+              <article>
+                <a href={article.url}>
+                  <img src={article?.ogImage} alt="" class="article-image" />
+                  <h2 class="article-title">{article?.ogTitle}</h2>
+                </a>
+              </article>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </body>
+</html>
+
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+    color: #f0f6fc;
+    margin: 0;
+    padding: 20px;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 36px;
+    margin-bottom: 40px;
+    color: #58a6ff;
+  }
+
+  .article-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    list-style-type: none;
+    padding: 0;
+  }
+
+  .article-card {
+    background: #1e242d;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .article-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .article-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-bottom: 1px solid #30363d;
+  }
+
+  .article-title {
+    font-size: 20px;
+    margin: 20px;
+    text-align: center;
+    color: #c9d1d9;
+    word-wrap: break-word;
+  }
+
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  p {
+    text-align: center;
+    color: #ff7b72;
+  }
+</style>

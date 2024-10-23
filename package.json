@@ -1,0 +1,19 @@
+{
+  "name": "distributed-news",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^4.16.6",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.13.4",
+    "jsdom": "^25.0.1",
+    "node-fetch": "^3.3.2"
+  }
+}
